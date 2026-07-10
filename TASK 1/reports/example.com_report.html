@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>Recon Report - example.com</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 2rem; }
+  h1 { color: #333; }
+  h2 { color: #555; border-bottom: 1px solid #ccc; }
+  table { border-collapse: collapse; }
+  td { padding: 5px 10px; }
+  td:first-child { font-weight: bold; }
+  .risk-box { border: 1px solid #ccc; padding: 1rem; margin: 1rem 0; background: #f9f9f9; }
+  .risk-high { color: #c0392b; }
+  .risk-medium { color: #d68910; }
+  .risk-low { color: #27ae60; }
+</style>
+</head>
+<body>
+  <h1>Reconnaissance Report</h1>
+  <p><b>Target:</b> example.com</p>
+  <p><b>Resolved IP:</b> 172.66.147.243</p>
+  <p><b>Generated on:</b> 2026-07-10T21:14:14.697598</p>
+
+  <div class="risk-box">
+    <h2>Security Posture Summary</h2>
+    <p>Risk Score: <b class="risk-high">10 (High Risk)</b></p>
+    <ul><li>4 security header(s) missing</li><li>DMARC record not configured</li><li>2 open port(s) found</li></ul>
+  </div>
+
+  <h2>Whois</h2><table><tr><td>registrar</td><td>RESERVED-Internet Assigned Numbers Authority</td></tr><tr><td>creation_date</td><td>1995-08-14 04:00:00</td></tr><tr><td>expiration_date</td><td>2026-08-13 04:00:00</td></tr><tr><td>name_servers</td><td><ul><li>elliott.ns.cloudflare.com</li><li>hera.ns.cloudflare.com</li></ul></td></tr><tr><td>emails</td><td><i>none</i></td></tr><tr><td>org</td><td>None</td></tr><tr><td>country</td><td>None</td></tr></table><h2>Dns</h2><table><tr><td>A</td><td><ul><li>172.66.147.243</li><li>104.20.23.154</li></ul></td></tr><tr><td>MX</td><td><ul><li>0 .</li></ul></td></tr><tr><td>TXT</td><td><ul><li>"v=spf1 -all"</li><li>"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9"</li></ul></td></tr><tr><td>NS</td><td><ul><li>hera.ns.cloudflare.com.</li><li>elliott.ns.cloudflare.com.</li></ul></td></tr><tr><td>summary</td><td><table><tr><td>total_a_records</td><td>2</td></tr><tr><td>load_balanced</td><td>True</td></tr><tr><td>load_balance_note</td><td>2 A records found -- suggests load balancing or CDN</td></tr><tr><td>has_mx</td><td>True</td></tr><tr><td>mail_provider</td><td>Unknown / Self-hosted</td></tr><tr><td>has_spf</td><td>True</td></tr><tr><td>has_dmarc</td><td>False</td></tr><tr><td>nameserver_count</td><td>2</td></tr><tr><td>dns_provider</td><td>Cloudflare</td></tr></table></td></tr></table><h2>Subdomains</h2><table><tr><td>domain</td><td>example.com</td></tr><tr><td>subdomains</td><td><ul><li>example.com</li><li>www.example.com</li></ul></td></tr><tr><td>count</td><td>2</td></tr><tr><td>sources</td><td><table><tr><td>crtsh</td><td>0</td></tr><tr><td>otx</td><td>0</td></tr><tr><td>hackertarget</td><td>2</td></tr><tr><td>bruteforce</td><td>0</td></tr></table></td></tr><tr><td>source_errors</td><td><table><tr><td>crtsh</td><td>crt.sh returned status 502</td></tr><tr><td>otx</td><td>OTX returned status 429</td></tr></table></td></tr></table><h2>Ports</h2><table><tr><td>target</td><td>example.com</td></tr><tr><td>success</td><td>True</td></tr><tr><td>data</td><td><table><tr><td>target</td><td>example.com</td></tr><tr><td>resolved_ip</td><td>104.20.23.154</td></tr><tr><td>started_at</td><td>1783700046.3380558</td></tr><tr><td>finished_at</td><td>1783700054.6376152</td></tr><tr><td>open_ports</td><td><ul><li><table><tr><td>port</td><td>80</td></tr><tr><td>state</td><td>open</td></tr><tr><td>service</td><td>http</td></tr><tr><td>banner</td><td>None</td></tr><tr><td>latency_ms</td><td>48.47</td></tr></table></li><li><table><tr><td>port</td><td>443</td></tr><tr><td>state</td><td>open</td></tr><tr><td>service</td><td>https</td></tr><tr><td>banner</td><td>None</td></tr><tr><td>latency_ms</td><td>387.96</td></tr></table></li></ul></td></tr><tr><td>scanned_port_count</td><td>1024</td></tr><tr><td>backend</td><td>socket</td></tr><tr><td>duration_sec</td><td>8.3</td></tr></table></td></tr></table><h2>Techdetect</h2><table><tr><td>resolved_ip</td><td>172.66.147.243</td></tr><tr><td>status_code</td><td>200</td></tr><tr><td>server</td><td>cloudflare</td></tr><tr><td>cms</td><td><i>none</i></td></tr><tr><td>js_libraries</td><td><i>none</i></td></tr><tr><td>security_headers_missing</td><td><ul><li>Strict-Transport-Security</li><li>Content-Security-Policy</li><li>X-Frame-Options</li><li>X-Content-Type-Options</li></ul></td></tr><tr><td>error</td><td>None</td></tr></table>
+</body>
+</html>

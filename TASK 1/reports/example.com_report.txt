@@ -1,0 +1,103 @@
+==================================================
+Recon Report for: example.com
+Generated on: 2026-07-10T21:14:14.694984
+Resolved IP: 104.20.23.154
+==================================================
+
+SECURITY POSTURE SUMMARY
+-------------------------
+Risk Score : 10 (High Risk)
+  - 4 security header(s) missing
+  - DMARC record not configured
+  - 2 open port(s) found
+
+[WHOIS]
+  registrar: RESERVED-Internet Assigned Numbers Authority
+  creation_date: 1995-08-14 04:00:00
+  expiration_date: 2026-08-13 04:00:00
+  name_servers:
+    - elliott.ns.cloudflare.com
+    - hera.ns.cloudflare.com
+  emails:
+    (none)
+  org: None
+  country: None
+
+[DNS]
+  A:
+    - 172.66.147.243
+    - 104.20.23.154
+  MX:
+    - 0 .
+  TXT:
+    - "v=spf1 -all"
+    - "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9"
+  NS:
+    - hera.ns.cloudflare.com.
+    - elliott.ns.cloudflare.com.
+  summary:
+    total_a_records: 2
+    load_balanced: True
+    load_balance_note: 2 A records found -- suggests load balancing or CDN
+    has_mx: True
+    mail_provider: Unknown / Self-hosted
+    has_spf: True
+    has_dmarc: False
+    nameserver_count: 2
+    dns_provider: Cloudflare
+
+[SUBDOMAINS]
+  domain: example.com
+  subdomains:
+    - example.com
+    - www.example.com
+  count: 2
+  sources:
+    crtsh: 0
+    otx: 0
+    hackertarget: 2
+    bruteforce: 0
+  source_errors:
+    crtsh: crt.sh returned status 502
+    otx: OTX returned status 429
+
+[PORTS]
+  target: example.com
+  success: True
+  data:
+    target: example.com
+    resolved_ip: 104.20.23.154
+    started_at: 1783700046.3380558
+    finished_at: 1783700054.6376152
+    open_ports:
+      -
+        port: 80
+        state: open
+        service: http
+        banner: None
+        latency_ms: 48.47
+      -
+        port: 443
+        state: open
+        service: https
+        banner: None
+        latency_ms: 387.96
+    scanned_port_count: 1024
+    backend: socket
+    duration_sec: 8.3
+
+[TECHDETECT]
+  resolved_ip: 172.66.147.243
+  status_code: 200
+  server: cloudflare
+  cms:
+    (none)
+  js_libraries:
+    (none)
+  security_headers_missing:
+    - Strict-Transport-Security
+    - Content-Security-Policy
+    - X-Frame-Options
+    - X-Content-Type-Options
+  error: None
+
