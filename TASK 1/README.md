@@ -2,8 +2,8 @@
 
 A lightweight, modular command-line reconnaissance tool built for penetration
 testing engagements. It automates the early information-gathering phase of a
-pentest — passive recon (WHOIS, DNS, subdomains) and active recon (port
-scanning, banner grabbing, technology detection) — and outputs a consolidated
+pentest, passive recon (WHOIS, DNS, subdomains) and active recon (port
+scanning, banner grabbing, technology detection), and outputs a consolidated
 report in `.txt`, `.html`, and `.json` formats.
 
 Built as part of an internship red-teaming/tooling exercise to practice
@@ -22,7 +22,7 @@ offensive-security scripting and modular Python architecture.
 - **Reporting**
   - Auto-generated `.txt`, `.html`, and `.json` reports with timestamps and
     resolved IP details, saved to `reports/`
-- **Modular design** — every recon type is its own module under `modules/`
+- **Modular design**, every recon type is its own module under `modules/`
   and is toggled independently via CLI flags
 - **Verbosity levels** via `-v` for debug-level logging
 
@@ -55,7 +55,7 @@ Example, running every module against a test domain with verbose logging:
 python3 main.py tesla.com --whois --dns --subdomains --ports 80,443 --banners --techdetect -v
 ```
 
-Only need a couple of checks? Flags are independent — mix and match:
+Only need a couple of checks? Flags are independent, mix and match:
 
 ```bash
 python3 main.py tesla.com --whois --dns
@@ -93,7 +93,7 @@ format without running the tool first.
 
 ```
 recon_tool/
-├── main.py                  # CLI entrypoint — parses flags, runs modules, triggers report
+├── main.py                  # CLI entrypoint, parses flags, runs modules, triggers report
 ├── requirements.txt
 ├── modules/
 │   ├── whois_lookup.py      # WHOIS lookup
@@ -112,16 +112,16 @@ recon_tool/
 
 | Module | Contributor |
 |---|---|
-| Project structure, CLI, logging integration & documentation| Member 1 |
+| Project structure, CLI, logging integration, documentation and Docker Packaging| Member 1 |
 | WHOIS lookup & DNS enumeration | Member 2 |
 | Subdomain enumeration | Member 3 |
-| Port scanning, banner grabbing and Docker Packaging| Member 4 |
+| Port scanning, banner grabbing | Member 4 |
 | Technology detection, testing, reporting & GitHub submission | Member 5 |
 
 
 ## Docker
 
-*Coming soon* — a `Dockerfile` and `docker-compose.yml` are being added in a
+*Coming soon*, a `Dockerfile` and `docker-compose.yml` are being added in a
 follow-up commit to allow running the tool in a container without a local
 Python setup.
 
