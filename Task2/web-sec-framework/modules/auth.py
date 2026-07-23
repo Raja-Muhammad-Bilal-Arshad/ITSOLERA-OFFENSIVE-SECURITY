@@ -23,14 +23,27 @@ class AuthAssessmentModule:
     name = "Authentication Assessment"
 
     def __init__(self, target, login_path="/login", username_field="username",
-                 password_field="password", timeout=20, max_lockout_attempts=5):
+                 password_field="password", timeout=20, max_lockout_attempts=5,
+                 headers=None, cookies=None):
         self.target = target
         self.login_path = login_path
         self.username_field = username_field
         self.password_field = password_field
         self.timeout = timeout
         self.max_lockout_attempts = max_lockout_attempts
+        # --- Additional Features: custom headers / cookies / User-Agent ---
+        self.custom_headers = headers or {}
+        self.custom_cookies = cookies or {}
         self.findings = []
+
+    def _request_kwargs(self):
+        """Builds extra kwargs (custom headers/cookies) to pass into send_request."""
+        kwargs = {}
+        if self.custom_headers:
+            kwargs["headers"] = self.custom_headers
+        if self.custom_cookies:
+            kwargs["cookies"] = self.custom_cookies
+        return kwargs
 
     def run(self):
         print_info(f"[Module 2] Starting Authentication Assessment on {self.target}")
@@ -53,12 +66,12 @@ class AuthAssessmentModule:
 
     def _get_login_page(self):
         url = _build_url(self.target, self.login_path)
-        return send_request(url, method="GET", timeout=self.timeout)
+        return send_request(url, method="GET", timeout=self.timeout, **self._request_kwargs())
 
     def _post_login(self, username, password):
         url = _build_url(self.target, self.login_path)
         data = {self.username_field: username, self.password_field: password}
-        return send_request(url, method="POST", timeout=self.timeout, data=data)
+        return send_request(url, method="POST", timeout=self.timeout, data=data, **self._request_kwargs())
 
     def _check_weak_password_policy(self):
         print_info("Checking password policy hints...")

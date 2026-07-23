@@ -35,12 +35,24 @@ class InformationDisclosureModule:
 
     name = "Information Disclosure"
 
-    def __init__(self, target, timeout=20, common_dirs=None):
+    def __init__(self, target, timeout=20, common_dirs=None, headers=None, cookies=None):
         self.target = target.rstrip("/")
         self.timeout = timeout
         self.common_dirs = common_dirs or ["", "backup", "backups", "uploads",
                                             "files", "assets", "old", "test"]
+        # --- Additional Features: custom headers / cookies / User-Agent ---
+        self.custom_headers = headers or {}
+        self.custom_cookies = cookies or {}
         self.findings = []
+
+    def _request_kwargs(self):
+        """Builds extra kwargs (custom headers/cookies) to pass into send_request."""
+        kwargs = {}
+        if self.custom_headers:
+            kwargs["headers"] = self.custom_headers
+        if self.custom_cookies:
+            kwargs["cookies"] = self.custom_cookies
+        return kwargs
 
     def run(self):
         print_info(f"[Module 5] Starting Information Disclosure scan on {self.target}")
@@ -64,7 +76,7 @@ class InformationDisclosureModule:
 
     def _get(self, path):
         url = _build_url(self.target, path)
-        return send_request(url, method="GET", timeout=self.timeout)
+        return send_request(url, method="GET", timeout=self.timeout, **self._request_kwargs())
 
     def _exists(self, resp):
         return resp is not None and resp.status_code == 200
