@@ -1,0 +1,14 @@
+{
+  "target": "http://testphp.vulnweb.com",
+  "modules": ["headers", "disclosure"],
+  "user_agent": "Mozilla/5.0 (compatible; WebSecFramework/1.0)",
+  "headers": {
+    "X-Test-Run": "internship-task-2"
+  },
+  "cookies": {},
+  "proxy": null,
+  "timeout": 10,
+  "threads": 3,
+  "output_format": "both",
+  "output_dir": "reports"
+}
