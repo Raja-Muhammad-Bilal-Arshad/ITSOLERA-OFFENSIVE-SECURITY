@@ -1,251 +1,238 @@
-# framework.py
+#!/usr/bin/env python3
+"""
+framework.py
+============
+Custom Web Security Testing Framework — CLI entrypoint.
+
+Summer Internship Task 2 — Offensive Security
+ITSOLERA PVT LTD
+
+Usage examples:
+    python framework.py --target http://testphp.vulnweb.com --module xss
+    python framework.py --target http://demo.testfire.net --module headers
+    python framework.py --target http://testphp.vulnweb.com --module all
+    python framework.py --target http://testphp.vulnweb.com/listproducts.php?cat=1 \\
+        --module sqli,xss --output-format both --threads 3
+
+IMPORTANT: Only test applications you own or are explicitly authorized to
+assess (e.g. DVWA, OWASP Juice Shop, bWAPP, WebGoat, Mutillidae, or the
+intentionally vulnerable public test sites referenced in this task).
+"""
+
 import argparse
 import sys
-from utils.helpers import print_info, print_success, print_warning, print_error
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Attempt to import your module. 
-# We use try/except so the framework doesn't crash if a file is missing during development.
-try:
-    from modules.headers import analyze_headers
-except ImportError:
-    analyze_headers = None
+from utils import colors
+from utils.http_client import HttpClient
+from utils.progress import ProgressBar
+from utils.config import load_config
+from utils.report import generate_report
 
-# --- Added: imports for Module 2 (auth.py) and Module 5 (disclosure.py) ---
-try:
-    from modules.auth import AuthAssessmentModule
-except ImportError:
-    AuthAssessmentModule = None
+from modules import headers as mod_headers
+from modules import auth as mod_auth
+from modules import xss as mod_xss
+from modules import sqli as mod_sqli
+from modules import disclosure as mod_disclosure
 
-try:
-    from modules.disclosure import InformationDisclosureModule
-except ImportError:
-    InformationDisclosureModule = None
+MODULE_REGISTRY = {
+    "headers": ("Security Headers Analyzer", mod_headers),
+    "auth": ("Authentication Assessment", mod_auth),
+    "xss": ("XSS Testing", mod_xss),
+    "sqli": ("SQL Injection Testing", mod_sqli),
+    "disclosure": ("Information Disclosure", mod_disclosure),
+}
 
-# --- Added: imports for Module 3 (xss.py) and Module 4 (sqli.py) ---
-try:
-    from modules.xss import XSSTestingModule
-except ImportError:
-    XSSTestingModule = None
+BANNER = r"""
+ __      __      _     ____                     _____                          _
+ \ \    / /____ | |__ / ___|  ___  ___          |  ___| __ __ _ _ __ ___   __ _|| |__
+  \ \  / // _ \| '_ \\___ \ / _ \/ __|         | |_ | '__/ _` | '_ ` _ \ / _` | '_ \
+   \ \/ /|  __/| |_) |___) |  __/ (__          |  _|| | | (_| | | | | | | (_| | | | |
+    \  /  \___||_.__/|____/ \___|\___|         |_|  |_|  \__,_|_| |_| |_|\__,_|_| |_|
 
-try:
-    from modules.sqli import SQLiTestingModule
-except ImportError:
-    SQLiTestingModule = None
+        Web Security Testing Framework  |  ITSOLERA PVT LTD  |  Task 2 (Offensive Security)
+"""
 
 
-# --- Added: shared helper to print findings returned by auth.py / disclosure.py ---
-# (headers.py prints its own report internally, but auth.py and disclosure.py
-# return a list of finding dicts from .run(), so something needs to display them.)
-def print_findings(findings):
-    if not findings:
-        print_success("No issues found by this module.")
-        print("-" * 50)
-        return
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog="framework.py",
+        description="Custom Web Security Testing Framework — automates detection of common "
+                    "web application vulnerabilities against authorized/intentionally "
+                    "vulnerable targets.",
+    )
+    parser.add_argument("--target", help="Target URL, e.g. http://testphp.vulnweb.com")
+    parser.add_argument(
+        "--module", default="all",
+        help="Comma-separated modules to run: headers,auth,xss,sqli,disclosure or 'all' (default: all)"
+    )
+    parser.add_argument("--login-url", help="Explicit login page URL for the auth module")
+    parser.add_argument("--user-agent", help="Custom User-Agent string")
+    parser.add_argument(
+        "--header", action="append", default=[],
+        help="Custom request header 'Name: Value' (repeatable)"
+    )
+    parser.add_argument(
+        "--cookie", action="append", default=[],
+        help="Cookie 'name=value' to send with every request (repeatable)"
+    )
+    parser.add_argument("--proxy", help="Proxy URL, e.g. http://127.0.0.1:8080 (Burp Suite, etc.)")
+    parser.add_argument("--timeout", type=int, default=10, help="Request timeout in seconds (default: 10)")
+    parser.add_argument("--threads", type=int, default=3, help="Number of modules to run concurrently (default: 3)")
+    parser.add_argument(
+        "--output-format", choices=["html", "json", "both"], default="html",
+        help="Report output format (default: html)"
+    )
+    parser.add_argument("--output-dir", default="reports", help="Directory to write reports to (default: reports/)")
+    parser.add_argument("--config", help="Path to a JSON config file with default options")
+    parser.add_argument("--no-color", action="store_true", help="Disable colored terminal output")
+    parser.add_argument("--verbose", action="store_true", help="Print extra detail per finding as it's found")
+    return parser.parse_args()
 
-    severity_colors = {
-        "Critical": "\033[95m",  # Magenta
-        "High": "\033[91m",      # Red
-        "Medium": "\033[93m",    # Yellow
-        "Low": "\033[94m",       # Blue
-        "Info": "\033[96m",      # Cyan
-    }
-    reset = "\033[0m"
 
-    print_warning(f"FINDINGS ({len(findings)}):")
-    for i, finding in enumerate(findings, start=1):
-        severity = finding.get("severity", "Info")
-        color = severity_colors.get(severity, "")
-        print(f"\n  [{i}] {finding.get('title', 'Untitled Finding')} "
-            f"{color}[{severity}]{reset}")
-        print(f"      Evidence: {finding.get('evidence', 'N/A')}")
-        print(f"      Recommendation: {finding.get('recommendation', 'N/A')}")
-    print("\n" + "-" * 50)
+def parse_headers(header_list):
+    headers = {}
+    for h in header_list:
+        if ":" in h:
+            name, value = h.split(":", 1)
+            headers[name.strip()] = value.strip()
+    return headers
+
+
+def parse_cookies(cookie_list):
+    cookies = {}
+    for c in cookie_list:
+        if "=" in c:
+            name, value = c.split("=", 1)
+            cookies[name.strip()] = value.strip()
+    return cookies
+
+
+def resolve_modules(module_arg):
+    if module_arg.strip().lower() == "all":
+        return list(MODULE_REGISTRY.keys())
+    requested = [m.strip().lower() for m in module_arg.split(",") if m.strip()]
+    invalid = [m for m in requested if m not in MODULE_REGISTRY]
+    if invalid:
+        print(colors.error(f"[!] Unknown module(s): {', '.join(invalid)}"))
+        print(colors.info(f"    Available modules: {', '.join(MODULE_REGISTRY.keys())}"))
+        sys.exit(1)
+    return requested
+
+
+def run_module(module_key, target, http_client, login_url=None):
+    display_name, module = MODULE_REGISTRY[module_key]
+    start = time.time()
+    try:
+        result = module.run(target, http_client, login_url=login_url)
+    except Exception as exc:  # noqa: BLE001 — surface any module failure as a scan error, don't crash the run
+        from utils.findings import ScanResult
+        result = ScanResult(module_name=display_name, target=target)
+        result.errors.append(f"Module '{module_key}' raised an exception: {exc}")
+        result.finish()
+    elapsed = time.time() - start
+    return module_key, result, elapsed
 
 
 def main():
-    # 1. Argument Parsing
+    args = parse_args()
 
-    parser = argparse.ArgumentParser(
-        description="ITSOLERA Web Security Testing Framework",
-        epilog="Example: python framework.py --target http://testphp.vulnweb.com --module xss"
-    )
+    if args.no_color:
+        colors.Colors._enabled = False
 
-    # Required: The target URL
-    parser.add_argument(
-        "--target",
-        required=True,
-        type=str,
-        help="The target URL to test (must include http:// or https://)"
-    )
+    print(colors.info(BANNER))
 
-    # Required: The module to run, restricted to specific choices
-    parser.add_argument(
-        "--module",
-        required=True,
-        type=str,
-        choices=['headers', 'auth', 'xss', 'sqli', 'disclosure', 'all'],
-        help="Which security module to execute"
-    )
-
-    # Optional: Configuration file loading (Advanced Feature)
-    parser.add_argument(
-        "--config",
-        required=False,
-        type=str,
-        help="Path to an optional configuration file (e.g., config.json)"
-    )
-
-    # --- Added: options needed for Module 2 (auth) ---
-    parser.add_argument(
-        "--login-path",
-        required=False,
-        type=str,
-        default="/login",
-        help="Path to the login form, relative to target (default: /login). Used by the auth module."
-    )
-
-    # --- Added: Additional Features required for Member 2's modules ---
-    parser.add_argument(
-        "--cookies",
-        required=False,
-        type=str,
-        help="Custom cookies to send with requests, format: 'name1=value1; name2=value2'"
-    )
-    parser.add_argument(
-        "--header",
-        action="append",
-        dest="headers",
-        required=False,
-        help="Custom header, format: 'Key: Value'. Can be passed multiple times."
-    )
-    parser.add_argument(
-        "--user-agent",
-        required=False,
-        type=str,
-        help="Custom User-Agent string to use instead of the default."
-    )
-
-    # --- Added: option needed for Module 4 (sqli) ---
-    parser.add_argument(
-        "--time-based",
-        action="store_true",
-        dest="time_based",
-        required=False,
-        help="Enable optional time-based SQL injection detection (adds SLEEP()/"
-            "WAITFOR DELAY payloads that intentionally delay some requests "
-            "by several seconds). Off by default."
-    )
-
-    # Parse the arguments
-    args = parser.parse_args()
-
-    # Print initial startup info using your new colored output utility
-    print_info(f"Targeting: {args.target}")
-    print_info(f"Selected Module: {args.module}")
-
-    # Handle the advanced configuration feature if the user provided it
+    config = {}
     if args.config:
-        print_info(f"Loading configuration from {args.config}...")
-        # TODO: Add logic later to parse a JSON or YAML file to override default settings
+        try:
+            config = load_config(args.config)
+        except FileNotFoundError as exc:
+            print(colors.error(f"[!] {exc}"))
+            sys.exit(1)
 
-    # --- Added: build custom headers/cookies dicts from CLI input for auth/disclosure ---
-    custom_cookies = {}
-    if args.cookies:
-        for pair in args.cookies.split(";"):
-            if "=" in pair:
-                key, value = pair.split("=", 1)
-                custom_cookies[key.strip()] = value.strip()
+    target = args.target or config.get("target")
+    if not target:
+        print(colors.error("[!] --target is required (or set 'target' in a --config file)."))
+        sys.exit(1)
+    if not target.startswith("http://") and not target.startswith("https://"):
+        target = "http://" + target
 
-    custom_headers = {}
-    if args.headers:
-        for entry in args.headers:
-            if ":" in entry:
-                key, value = entry.split(":", 1)
-                custom_headers[key.strip()] = value.strip()
+    module_arg = args.module if args.module != "all" or not config.get("modules") else ",".join(config["modules"])
+    modules_to_run = resolve_modules(module_arg)
 
-    if args.user_agent:
-        custom_headers["User-Agent"] = args.user_agent
+    user_agent = args.user_agent or config.get("user_agent")
+    extra_headers = {**config.get("headers", {}), **parse_headers(args.header)}
+    cookies = {**config.get("cookies", {}), **parse_cookies(args.cookie)}
+    proxy = args.proxy or config.get("proxy")
+    timeout = args.timeout if args.timeout != 10 else config.get("timeout", 10)
+    threads = args.threads if args.threads != 3 else config.get("threads", 3)
+    output_format = args.output_format if args.output_format != "html" else config.get("output_format", "html")
+    output_dir = args.output_dir if args.output_dir != "reports" else config.get("output_dir", "reports")
 
-    print("-" * 50)
+    print(colors.bold(f"[*] Target:  ") + target)
+    print(colors.bold(f"[*] Modules: ") + ", ".join(modules_to_run))
+    if proxy:
+        print(colors.bold(f"[*] Proxy:   ") + proxy)
+    print()
 
+    http_client = HttpClient(
+        user_agent=user_agent,
+        extra_headers=extra_headers,
+        cookies=cookies,
+        proxy=proxy,
+        timeout=timeout,
+    )
 
-    # 2. The Module Loader (Dispatcher)
+    results = {}
+    bar = ProgressBar(total=len(modules_to_run), prefix="Scanning")
 
-    
-    run_all = (args.module == 'all')
+    with ThreadPoolExecutor(max_workers=max(1, threads)) as executor:
+        futures = {
+            executor.submit(run_module, m, target, http_client, args.login_url): m
+            for m in modules_to_run
+        }
+        for future in as_completed(futures):
+            module_key, result, elapsed = future.result()
+            results[module_key] = result
+            bar.update(step_label=f"{MODULE_REGISTRY[module_key][0]} ({elapsed:.1f}s)")
 
-    # Route to Module 1: Security Headers
-    if args.module == 'headers' or run_all:
-        if analyze_headers:
-            print_info("Starting Security Headers Analysis...")
-            # Call the function from headers.py and pass the target
-            analyze_headers(args.target)
-        else:
-            print_error("Failed to load 'headers.py'. Ensure the file exists and the function is named 'analyze_headers'.")
+    print()
+    print(colors.bold("[*] Scan Summary"))
+    print("-" * 60)
+    ordered_results = [results[m] for m in modules_to_run if m in results]
 
-    # Route to Module 2: Authentication
-    if args.module == 'auth' or run_all:
-        if AuthAssessmentModule:
-            print_info("Starting Authentication Assessment...")
-            auth_module = AuthAssessmentModule(
-                args.target,
-                login_path=args.login_path,
-                headers=custom_headers,
-                cookies=custom_cookies,
-            )
-            findings = auth_module.run()
-            print_findings(findings)
-        else:
-            print_error("Failed to load 'auth.py'. Ensure the file exists and the class is named 'AuthAssessmentModule'.")
+    total_findings = 0
+    for module_key in modules_to_run:
+        result = results.get(module_key)
+        if result is None:
+            continue
+        display_name = MODULE_REGISTRY[module_key][0]
+        actionable = [f for f in result.findings if f.severity != "Info"]
+        total_findings += len(actionable)
+        print(f"  {colors.bold(display_name)}: {len(actionable)} issue(s) found "
+              f"({len(result.findings)} checks total)")
+        if args.verbose:
+            for f in result.findings:
+                if f.severity != "Info":
+                    print(f"      - [{colors.severity_color(f.severity)}] {f.title}")
+        if result.errors:
+            for err in result.errors:
+                print(colors.error(f"      ! {err}"))
 
-    # Route to Module 3: XSS Testing
-    if args.module == 'xss' or run_all:
-        if XSSTestingModule:
-            print_info("Starting XSS Testing...")
-            xss_module = XSSTestingModule(
-                args.target,
-                headers=custom_headers,
-                cookies=custom_cookies,
-            )
-            findings = xss_module.run()
-            print_findings(findings)
-        else:
-            print_error("Failed to load 'xss.py'. Ensure the file exists and the class is named 'XSSTestingModule'.")
+    print("-" * 60)
+    print(colors.bold(f"[*] Total actionable findings: ") +
+          (colors.error(str(total_findings)) if total_findings else colors.success("0")))
 
-    # Route to Module 4: SQL Injection Testing
-    if args.module == 'sqli' or run_all:
-        if SQLiTestingModule:
-            print_info("Starting SQL Injection Testing...")
-            sqli_module = SQLiTestingModule(
-                args.target,
-                headers=custom_headers,
-                cookies=custom_cookies,
-                enable_time_based=args.time_based,
-            )
-            findings = sqli_module.run()
-            print_findings(findings)
-        else:
-            print_error("Failed to load 'sqli.py'. Ensure the file exists and the class is named 'SQLiTestingModule'.")
+    print()
+    print(colors.info("[*] Generating report..."))
+    paths, report_data = generate_report(
+        target, ordered_results, output_dir=output_dir, output_format=output_format
+    )
+    print(colors.success(f"[+] Overall Risk Rating: {report_data['overall_risk_rating']}"))
+    for p in paths:
+        print(colors.success(f"[+] Report written to: {p}"))
 
-    # Route to Module 5: Information Disclosure
-    if args.module == 'disclosure' or run_all:
-        if InformationDisclosureModule:
-            print_info("Starting Information Disclosure Scan...")
-            disclosure_module = InformationDisclosureModule(
-                args.target,
-                headers=custom_headers,
-                cookies=custom_cookies,
-            )
-            findings = disclosure_module.run()
-            print_findings(findings)
-        else:
-            print_error("Failed to load 'disclosure.py'. Ensure the file exists and the class is named 'InformationDisclosureModule'.")
 
 if __name__ == "__main__":
-    # Ensure properr exit on keyboard interrupt (Ctrl+C)
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\n")
-        print_error("Scan interrupted by user. Exiting...")
-        sys.exit(0)
+    main()
