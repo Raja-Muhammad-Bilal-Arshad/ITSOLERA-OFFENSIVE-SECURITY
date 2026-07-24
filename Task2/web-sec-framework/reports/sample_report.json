@@ -1,0 +1,130 @@
+{
+  "target": "http://127.0.0.1:5055/product?id=1",
+  "scan_date": "2026-07-16T07:33:40",
+  "modules_executed": [
+    "Security Headers",
+    "Authentication Assessment",
+    "XSS Testing",
+    "SQL Injection Testing",
+    "Information Disclosure"
+  ],
+  "overall_risk_rating": "Critical",
+  "summary": {
+    "Critical": 2,
+    "High": 2,
+    "Medium": 1,
+    "Low": 4,
+    "Info": 3
+  },
+  "findings": [
+    {
+      "module": "Security Headers",
+      "title": "Missing Content-Security-Policy",
+      "severity": "High",
+      "description": "The response does not include the 'Content-Security-Policy' header.",
+      "evidence": "Header not found in response.",
+      "remediation": "Define a Content-Security-Policy that restricts script, style, and object sources to trusted origins to mitigate XSS and data injection.",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "Security Headers",
+      "title": "Missing X-Frame-Options",
+      "severity": "Medium",
+      "description": "The response does not include the 'X-Frame-Options' header.",
+      "evidence": "Header not found in response.",
+      "remediation": "Set 'X-Frame-Options: DENY' or 'SAMEORIGIN' (or use frame-ancestors in CSP) to prevent clickjacking.",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "Security Headers",
+      "title": "Missing X-Content-Type-Options",
+      "severity": "Low",
+      "description": "The response does not include the 'X-Content-Type-Options' header.",
+      "evidence": "Header not found in response.",
+      "remediation": "Set 'X-Content-Type-Options: nosniff' to stop browsers from MIME-sniffing responses away from the declared content type.",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "Security Headers",
+      "title": "Missing Referrer-Policy",
+      "severity": "Low",
+      "description": "The response does not include the 'Referrer-Policy' header.",
+      "evidence": "Header not found in response.",
+      "remediation": "Set a Referrer-Policy such as 'strict-origin-when-cross-origin' to avoid leaking sensitive URL data to third parties.",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "Security Headers",
+      "title": "Missing Strict-Transport-Security",
+      "severity": "High",
+      "description": "The response does not include the 'Strict-Transport-Security' header.",
+      "evidence": "Header not found in response.",
+      "remediation": "Set 'Strict-Transport-Security: max-age=31536000; includeSubDomains' to enforce HTTPS and prevent SSL-stripping attacks.",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "Security Headers",
+      "title": "Missing Permissions-Policy",
+      "severity": "Low",
+      "description": "The response does not include the 'Permissions-Policy' header.",
+      "evidence": "Header not found in response.",
+      "remediation": "Define a Permissions-Policy to restrict access to sensitive browser features (camera, microphone, geolocation, etc.).",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "Security Headers",
+      "title": "Server header discloses technology info",
+      "severity": "Low",
+      "description": "The 'Server' header reveals backend technology details that can help an attacker fingerprint the stack.",
+      "evidence": "Server: Werkzeug/3.1.7 Python/3.12.3, Apache/2.2.8 (Ubuntu) PHP/5.2.4",
+      "remediation": "Suppress or genericize the 'Server' header at the server/proxy level.",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "Authentication Assessment",
+      "title": "No login form detected",
+      "severity": "Info",
+      "description": "Automatic form discovery did not find a login form on this page. Use --login-url to point directly at the login page for deeper checks.",
+      "evidence": "",
+      "remediation": "",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "XSS Testing",
+      "title": "No reflected XSS detected in GET parameter 'id'",
+      "severity": "Info",
+      "description": "Tested parameter 'id' with 4 payloads; no unencoded reflection observed.",
+      "evidence": "",
+      "remediation": "",
+      "location": "http://127.0.0.1:5055/product?id=1"
+    },
+    {
+      "module": "SQL Injection Testing",
+      "title": "Error-based SQL injection in parameter 'id'",
+      "severity": "Critical",
+      "description": "Injecting SQL metacharacters into 'id' surfaced a database error message, indicating unsanitized input reaching a SQL query.",
+      "evidence": "Payload: ' | Matched signature: 'you have an error in your sql syntax'",
+      "remediation": "Use parameterized queries / prepared statements for all database access; never concatenate user input into SQL. Disable verbose DB error output in production.",
+      "location": "http://127.0.0.1:5055/product?id=%27"
+    },
+    {
+      "module": "Information Disclosure",
+      "title": "robots.txt exposed",
+      "severity": "Info",
+      "description": "robots.txt is accessible and may reveal paths not meant for public discovery.",
+      "evidence": "HTTP 200 at http://127.0.0.1:5055/robots.txt",
+      "remediation": "Review robots.txt to ensure it doesn't reveal sensitive paths; note it is not a security control.",
+      "location": "http://127.0.0.1:5055/robots.txt"
+    },
+    {
+      "module": "Information Disclosure",
+      "title": ".env configuration file exposed",
+      "severity": "Critical",
+      "description": "A .env file is publicly accessible, potentially exposing database credentials, API keys, and secrets.",
+      "evidence": "HTTP 200 at http://127.0.0.1:5055/.env",
+      "remediation": "Store .env outside the web root and block access to dotfiles at the web server level.",
+      "location": "http://127.0.0.1:5055/.env"
+    }
+  ],
+  "errors": []
+}

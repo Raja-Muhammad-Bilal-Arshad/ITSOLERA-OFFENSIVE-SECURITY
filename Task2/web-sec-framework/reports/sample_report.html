@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Web Security Scan Report — http://127.0.0.1:5055/product?id=1</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --accent: #2563eb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background: #f1f5f9;
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #fff;
+    padding: 32px 40px;
+  }
+  header h1 { margin: 0 0 8px 0; font-size: 26px; }
+  header .meta { color: #cbd5e1; font-size: 14px; }
+  .container { max-width: 1100px; margin: -20px auto 40px auto; padding: 0 20px; }
+  .section {
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .section h2 { margin-top: 0; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+  .risk-banner {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    background: #7f1d1d;
+  }
+  .summary-grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .summary-card {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    border: 2px solid;
+    border-radius: 8px;
+    padding: 14px 8px;
+    background: #f8fafc;
+  }
+  .summary-count { font-size: 26px; font-weight: 700; }
+  .summary-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 10px 8px; vertical-align: top; border-bottom: 1px solid #e2e8f0; }
+  th { background: #f8fafc; color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+  .badge {
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 12px; word-break: break-word; }
+  .errors { color: #b91c1c; }
+  .modules-list { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .modules-list span {
+    background: #eef2ff;
+    color: #3730a3;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Web Security Testing Framework — Scan Report</h1>
+  <div class="meta">Target: http://127.0.0.1:5055/product?id=1 &nbsp;|&nbsp; Scan Date: 2026-07-16T07:33:40</div>
+</header>
+<div class="container">
+
+  <div class="section">
+    <h2>Overview</h2>
+    <p>Overall Risk Rating: <span class="risk-banner">Critical</span></p>
+    <p><strong>Modules Executed:</strong></p>
+    <div class="modules-list">
+      <span>Security Headers</span><span>Authentication Assessment</span><span>XSS Testing</span><span>SQL Injection Testing</span><span>Information Disclosure</span>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-card" style="border-color:#7f1d1d"><div class="summary-count" style="color:#7f1d1d">2</div><div class="summary-label">Critical</div></div><div class="summary-card" style="border-color:#dc2626"><div class="summary-count" style="color:#dc2626">2</div><div class="summary-label">High</div></div><div class="summary-card" style="border-color:#d97706"><div class="summary-count" style="color:#d97706">1</div><div class="summary-label">Medium</div></div><div class="summary-card" style="border-color:#2563eb"><div class="summary-count" style="color:#2563eb">4</div><div class="summary-label">Low</div></div><div class="summary-card" style="border-color:#6b7280"><div class="summary-count" style="color:#6b7280">3</div><div class="summary-label">Info</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Findings</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Module</th><th>Title</th><th>Severity</th><th>Description</th>
+          <th>Evidence</th><th>Remediation</th><th>Location</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>Security Headers</td>
+          <td>Missing Content-Security-Policy</td>
+          <td><span class="badge" style="background:#dc2626">High</span></td>
+          <td>The response does not include the &#x27;Content-Security-Policy&#x27; header.</td>
+          <td><code>Header not found in response.</code></td>
+          <td>Define a Content-Security-Policy that restricts script, style, and object sources to trusted origins to mitigate XSS and data injection.</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>Security Headers</td>
+          <td>Missing X-Frame-Options</td>
+          <td><span class="badge" style="background:#d97706">Medium</span></td>
+          <td>The response does not include the &#x27;X-Frame-Options&#x27; header.</td>
+          <td><code>Header not found in response.</code></td>
+          <td>Set &#x27;X-Frame-Options: DENY&#x27; or &#x27;SAMEORIGIN&#x27; (or use frame-ancestors in CSP) to prevent clickjacking.</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>Security Headers</td>
+          <td>Missing X-Content-Type-Options</td>
+          <td><span class="badge" style="background:#2563eb">Low</span></td>
+          <td>The response does not include the &#x27;X-Content-Type-Options&#x27; header.</td>
+          <td><code>Header not found in response.</code></td>
+          <td>Set &#x27;X-Content-Type-Options: nosniff&#x27; to stop browsers from MIME-sniffing responses away from the declared content type.</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>Security Headers</td>
+          <td>Missing Referrer-Policy</td>
+          <td><span class="badge" style="background:#2563eb">Low</span></td>
+          <td>The response does not include the &#x27;Referrer-Policy&#x27; header.</td>
+          <td><code>Header not found in response.</code></td>
+          <td>Set a Referrer-Policy such as &#x27;strict-origin-when-cross-origin&#x27; to avoid leaking sensitive URL data to third parties.</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>Security Headers</td>
+          <td>Missing Strict-Transport-Security</td>
+          <td><span class="badge" style="background:#dc2626">High</span></td>
+          <td>The response does not include the &#x27;Strict-Transport-Security&#x27; header.</td>
+          <td><code>Header not found in response.</code></td>
+          <td>Set &#x27;Strict-Transport-Security: max-age=31536000; includeSubDomains&#x27; to enforce HTTPS and prevent SSL-stripping attacks.</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>Security Headers</td>
+          <td>Missing Permissions-Policy</td>
+          <td><span class="badge" style="background:#2563eb">Low</span></td>
+          <td>The response does not include the &#x27;Permissions-Policy&#x27; header.</td>
+          <td><code>Header not found in response.</code></td>
+          <td>Define a Permissions-Policy to restrict access to sensitive browser features (camera, microphone, geolocation, etc.).</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>Security Headers</td>
+          <td>Server header discloses technology info</td>
+          <td><span class="badge" style="background:#2563eb">Low</span></td>
+          <td>The &#x27;Server&#x27; header reveals backend technology details that can help an attacker fingerprint the stack.</td>
+          <td><code>Server: Werkzeug/3.1.7 Python/3.12.3, Apache/2.2.8 (Ubuntu) PHP/5.2.4</code></td>
+          <td>Suppress or genericize the &#x27;Server&#x27; header at the server/proxy level.</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>Authentication Assessment</td>
+          <td>No login form detected</td>
+          <td><span class="badge" style="background:#6b7280">Info</span></td>
+          <td>Automatic form discovery did not find a login form on this page. Use --login-url to point directly at the login page for deeper checks.</td>
+          <td><code>-</code></td>
+          <td>-</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>XSS Testing</td>
+          <td>No reflected XSS detected in GET parameter &#x27;id&#x27;</td>
+          <td><span class="badge" style="background:#6b7280">Info</span></td>
+          <td>Tested parameter &#x27;id&#x27; with 4 payloads; no unencoded reflection observed.</td>
+          <td><code>-</code></td>
+          <td>-</td>
+          <td>http://127.0.0.1:5055/product?id=1</td>
+        </tr>
+        <tr>
+          <td>SQL Injection Testing</td>
+          <td>Error-based SQL injection in parameter &#x27;id&#x27;</td>
+          <td><span class="badge" style="background:#7f1d1d">Critical</span></td>
+          <td>Injecting SQL metacharacters into &#x27;id&#x27; surfaced a database error message, indicating unsanitized input reaching a SQL query.</td>
+          <td><code>Payload: &#x27; | Matched signature: &#x27;you have an error in your sql syntax&#x27;</code></td>
+          <td>Use parameterized queries / prepared statements for all database access; never concatenate user input into SQL. Disable verbose DB error output in production.</td>
+          <td>http://127.0.0.1:5055/product?id=%27</td>
+        </tr>
+        <tr>
+          <td>Information Disclosure</td>
+          <td>robots.txt exposed</td>
+          <td><span class="badge" style="background:#6b7280">Info</span></td>
+          <td>robots.txt is accessible and may reveal paths not meant for public discovery.</td>
+          <td><code>HTTP 200 at http://127.0.0.1:5055/robots.txt</code></td>
+          <td>Review robots.txt to ensure it doesn&#x27;t reveal sensitive paths; note it is not a security control.</td>
+          <td>http://127.0.0.1:5055/robots.txt</td>
+        </tr>
+        <tr>
+          <td>Information Disclosure</td>
+          <td>.env configuration file exposed</td>
+          <td><span class="badge" style="background:#7f1d1d">Critical</span></td>
+          <td>A .env file is publicly accessible, potentially exposing database credentials, API keys, and secrets.</td>
+          <td><code>HTTP 200 at http://127.0.0.1:5055/.env</code></td>
+          <td>Store .env outside the web root and block access to dotfiles at the web server level.</td>
+          <td>http://127.0.0.1:5055/.env</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+</div>
+<footer>Generated by Web Security Testing Framework — for authorized security testing only.</footer>
+</body>
+</html>
