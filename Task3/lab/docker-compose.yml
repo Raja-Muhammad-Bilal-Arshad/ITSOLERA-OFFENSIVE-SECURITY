@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  vulnerable_sudo:
+    build: .
+    container_name: cve_2021_3156_lab
+    tty: true
+    stdin_open: true
